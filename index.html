@@ -598,8 +598,8 @@ const SEC_LABELS_DISPLAY = {
   4:"A2 / B1 Bridge",5:"Reading — B1",6:"B1 / B1+ Final"
 };
 const SEC_LABELS_WA = {
-  1:"A1 Temeli",2:"A1+ / Erken A2",3:"A2 Kontrolü",
-  4:"A2 / B1 Köprüsü",5:"Reading — B1",6:"B1 / B1+ Ayıraç"
+  1:"A1 Foundation",2:"A1+ / Early A2",3:"A2 Control",
+  4:"A2 / B1 Bridge",5:"Reading",6:"B1+ Final"
 };
 const SEC_MAX = {1:8,2:8,3:8,4:8,5:4,6:4};
 const OPTS = ['A','B','C','D'];
@@ -836,15 +836,22 @@ function buildWA(total,pct,level,secSc){
   let info=sName;
   if(sSchool) info+=' · '+sSchool;
   if(sGrade) info+=' · '+sGrade;
+  const secMax2={1:8,2:8,3:8,4:8,5:4,6:4};
+  const formattedLines=[1,2,3,4,5,6].map(s=>{
+    const num='0'+s;
+    const lbl=SEC_LABELS_WA[s];
+    const score=secSc[s]+'/'+secMax2[s];
+    return num+' · '+lbl.padEnd(16,' ')+score;
+  }).join('\n');
   const text=
-`📋 Ali Salmasi — İngilizce Seviye Tespit Sınavı
-👤 Ad: ${info}
-📅 Tarih: 22.05.2026
-📊 Sonuç: ${total} / 40 (${pct}%)
-🎯 Seviye: ${level}
+`📋 English Placement Test
+👤 ${info}  ·  22.05.2026
 
-Bölüm Analizi:
-${secLines}
+Result : ${total} / 40  (${pct}%)
+Level  : ${level}
+
+Section Results:
+${formattedLines}
 
 Ali Salmasi English Diagnostic System`;
   if(ALI_WA && ALI_WA!=='905XXXXXXXXXX'){
