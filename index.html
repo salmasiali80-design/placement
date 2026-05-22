@@ -4,6 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Ali Salmasi — English Placement Test</title>
+<meta name="description" content="Ali Salmasi English Diagnostic System — 40 soruluk İngilizce seviye tespit sınavı. A1'den B1+'a.">
+<meta property="og:title" content="English Placement Test — Ali Salmasi">
+<meta property="og:description" content="40 soruluk İngilizce seviye tespit sınavı. Tamamladıktan sonra sonucu Ali Hoca'ya gönder.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://salmasiali80-design.github.io/placement">
+<meta property="og:site_name" content="Ali Salmasi English Diagnostic System">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
 /* ── TOKENS ── */
@@ -73,13 +79,12 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
 ══════════════════════════ */
 #s-exam{padding:32px 24px 80px;max-width:680px;margin:0 auto}
 
-/* dot tracker */
-#dot-bar{margin-bottom:28px}
-.dt-lbl{font-family:'DM Mono',monospace;font-size:8px;letter-spacing:2px;text-transform:uppercase;color:var(--ghost);margin-bottom:9px}
-#dot-grid{display:grid;grid-template-columns:repeat(20,1fr);gap:4px}
-@media(max-width:480px){#dot-grid{grid-template-columns:repeat(10,1fr)}}
-.dot{width:100%;aspect-ratio:1;border-radius:50%;background:#DDD7CC;transition:all .25s}
-.dot.lit{background:var(--gold);box-shadow:0 0 5px rgba(245,168,0,.35)}
+/* side spine */
+#side-spine{position:fixed;right:18px;top:50%;transform:translateY(-50%);z-index:150;display:none;flex-direction:column;gap:7px;align-items:center}
+.spine-dot{width:9px;height:9px;border-radius:50%;background:#DDD7CC;transition:background .3s,box-shadow .3s;flex-shrink:0}
+.spine-dot.lit{background:var(--gold);box-shadow:0 0 5px rgba(245,168,0,.45)}
+.spine-sep{width:1px;height:12px;background:var(--bd);margin:2px 0}
+@media(max-width:600px){#side-spine{right:8px}.spine-dot{width:7px;height:7px}}
 
 /* student strip */
 #strip{background:var(--white);border:1px solid var(--bd);border-radius:var(--r);padding:14px 20px;margin-bottom:32px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;box-shadow:var(--sh)}
@@ -305,10 +310,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--cream);color:var(--text);
      EXAM
 ══════════════════════════ -->
 <div id="s-exam" class="screen">
-  <div id="dot-bar">
-    <div class="dt-lbl">İlerleme — <span id="ans-count">0</span> / 40 cevaplandı</div>
-    <div id="dot-grid"></div>
-  </div>
+  <!-- Side spine tracker -->
+  <div id="side-spine"></div>
   <div id="strip">
     <div id="strip-name"><small>Student</small><span id="sn-text">—</span></div>
     <div id="strip-meta"></div>
@@ -627,7 +630,7 @@ function startExam(){
   sName=n;
   sSchool=document.getElementById('inp-school').value.trim();
   sGrade=document.getElementById('inp-grade').value.trim();
-  buildExam();buildDots();
+  buildExam();
   document.getElementById('sn-text').textContent=sName;
   let meta='22.05.2026';
   if(sSchool) meta+=' · '+sSchool;
@@ -640,6 +643,7 @@ function startExam(){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('s-exam').classList.add('active');
   window.scrollTo({top:0,behavior:'instant'});
+  buildSpine(1);
 }
 
 function tickTimer(){
@@ -666,12 +670,22 @@ function buildExam(){
   });
 }
 
-function buildDots(){
-  const g=document.getElementById('dot-grid');
-  for(let i=1;i<=40;i++){
+function buildSpine(sec){
+  const spine=document.getElementById('side-spine');
+  spine.innerHTML='';
+  spine.style.display='flex';
+  const secQs=QS.filter(q=>q.sec===sec);
+  secQs.forEach((q,i)=>{
     const d=document.createElement('div');
-    d.className='dot';d.id='d-'+i;g.appendChild(d);
-  }
+    d.className='spine-dot'+(ans[q.id]!==null?' lit':'');
+    d.id='sd-'+q.id;
+    d.title='Q'+q.id;
+    spine.appendChild(d);
+  });
+}
+
+function hideSpine(){
+  document.getElementById('side-spine').style.display='none';
 }
 
 // ─── SELECT ───────────────────────────────────────
@@ -681,9 +695,8 @@ function pick(qid,oi){
   ans[qid]=oi;
   for(let i=0;i<4;i++) document.getElementById('opt-'+qid+'-'+i)?.classList.toggle('sel',i===oi);
   document.getElementById('qb-'+qid)?.classList.add('lit');
-  document.getElementById('d-'+qid)?.classList.add('lit');
+  document.getElementById('sd-'+qid)?.classList.add('lit');
   const done=ans.filter((a,i)=>i>0&&a!==null).length;
-  document.getElementById('ans-count').textContent=done;
   document.getElementById('prog-fill').style.width=(done/40*100)+'%';
 }
 
@@ -699,6 +712,7 @@ function lockSec(sec){
   document.getElementById('sec'+sec)?.querySelector('.sec-complete-btn')?.style.setProperty('display','none');
   document.getElementById('sec'+sec+'-badge').style.display='block';
   // Reveal next section (progressive)
+  hideSpine();
   if(sec<6){
     const next=document.getElementById('sec'+(sec+1));
     if(next) next.classList.remove('sec-hidden');
@@ -720,9 +734,10 @@ function lockSec(sec){
 function closeSep(){
   document.getElementById('sep-overlay').classList.remove('show');
   if(pendingSep<6){
-    // Scroll to next section
-    const next=document.getElementById('sec'+(pendingSep+1));
+    const nextSec=pendingSep+1;
+    const next=document.getElementById('sec'+nextSec);
     if(next) setTimeout(()=>next.scrollIntoView({behavior:'smooth',block:'start'}),200);
+    buildSpine(nextSec);
   }
   pendingSep=0;
 }
@@ -784,6 +799,7 @@ function calcResults(){
   // Review
   buildReview(secSc);
 
+  hideSpine();
   goTo('s-results');
 }
 
